@@ -9,4 +9,10 @@ int encode_file(const char *in_file_name, const char *out_file_name);
 
 int decode_file(const char *in_file_name, const char *out_file_name);
 
+void terms_of_use();
+
+int option_selection(char ** argv);
+
+void input_validation(int argc);
+
 #endif
