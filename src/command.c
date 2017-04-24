@@ -13,7 +13,7 @@ void print_open_tag(char * word, FILE * out, int length){
 void print_close_tag(char * word, FILE * out, int length){
 	for (int i = 0 ;i < length; i++)
 		fprintf(out, "%c", word[i]);
-	fprintf(out, "%s", "\n");
+	fprintf(out, "%s", "\n\n");
 }
 
 
@@ -77,25 +77,21 @@ void build_paragraph(FILE * in, FILE * out, listnode ** hashtab_md) {
 		fseek(in, -1 ,SEEK_CUR);
 	while(1) {	
 		buff[k] = fgetc(in);
-		if(buff[k] == EOF) {
+		if(buff[k] == EOF)
 			break;	
-		}
 		if(buff[k] == '\n') {
-			buff[k+1] = fgetc(in);
-			if(buff[k+1] == '\n') {
+			buff[k] = fgetc(in);
+			if(buff[k] == '\n') {
 				fseek(in, -1 ,SEEK_CUR);
-				buff[k+1] = 0;
 				break;
 			}
 			else {
-				fseek(in, -1 ,SEEK_CUR);
-				buff[k+1] = 0;
-				continue;
+			k++;
+			buff[k] = fgetc(in);
 			}
 		}
-		k++;	
+	k++;	
 	}
-
 
 	
 	print_str(buff, "\\n", out, k, hashtab_md, 0); 
