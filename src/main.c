@@ -11,16 +11,16 @@ int main(int argc, char **argv) {
 	i = j = 0;
 	
 	char ** word;
-	word = malloc(sizeof(char*)*5);
-	for(int i = 0 ;i < 5; i++)
-		word[i]= malloc(sizeof(char)*5);
+	word = malloc(sizeof(char*)*6);
+	for(int i = 0 ;i < 6; i++)
+		word[i]= malloc(sizeof(char)*6);
 
 	file = fopen("md.txt", "r");
 
 	listnode *hashtab_md[HASH_SIZE];
 
 	hashtab_init(hashtab_md);
-
+	i = 0;
 	while (fscanf (file, "%s", word[i])!= EOF) {
 		printf("%d : %s\n", i, word[i]);
 		i++;
@@ -31,6 +31,7 @@ int main(int argc, char **argv) {
 	hashtab_add(hashtab_md, word[2], "<h3>" ,"</h3>");
 	hashtab_add(hashtab_md, word[3], "<h4>" ,"</h4>");
 	hashtab_add(hashtab_md, word[4], "<p>" ,"</p>");
+	hashtab_add(hashtab_md, word[5], "<ul>" ,"</ul");
 	
 	
 	option_selection(argv, hashtab_md);

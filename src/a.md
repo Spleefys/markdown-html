@@ -1,7 +1,14 @@
-## Основы ветвления и слияния
-Но перед тем
-Но перед тем
+## GIT
+Git is a free and open source 
+distributed version 
+control 
 
+Git is a free 
+and open source 
+distributed version 
+control 
 
-
-Но перед тем
+Git is a free 
+and open source 
+distributed version 
+control 

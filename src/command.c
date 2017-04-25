@@ -13,7 +13,7 @@ void print_open_tag(char * word, FILE * out, int length){
 void print_close_tag(char * word, FILE * out, int length){
 	for (int i = 0 ;i < length; i++)
 		fprintf(out, "%c", word[i]);
-	fprintf(out, "%s", "\n\n");
+	fprintf(out, "%s", "\n");
 }
 
 
@@ -22,7 +22,7 @@ void print_str(char * buff,char * word, FILE * out, int k , listnode ** hashtab_
 	listnode * node = hashtab_lookup(hashtab_md, word);
 	print_open_tag(node->tag.open, out, strlen(node->tag.open));
 	for (i = l ; i < k ; i++){
-		if (buff[i] == '\n' ||buff[i] == EOF)
+		if (buff[i] == EOF)
 			continue;
 		fprintf(out, "%c", buff[i]);
 	}
@@ -57,7 +57,6 @@ void build_headers(FILE * in, FILE * out, listnode ** hashtab_md){
 		buff_h[i] = '#';
 
 	print_str(buff, buff_h, out, k, hashtab_md, l);
-	//fseek(in, 1 ,SEEK_CUR);
 	free(buff_h);
 	free(buff);
 }
@@ -65,8 +64,8 @@ void build_headers(FILE * in, FILE * out, listnode ** hashtab_md){
 void build_paragraph(FILE * in, FILE * out, listnode ** hashtab_md) {
 	int k = 0;
 	char * buff;
-	buff = malloc(sizeof(char) * 256);
-	memset(buff, 0, 256);
+	buff = malloc(sizeof(char) * 1000);
+	memset(buff, 0, 1000);
 	while((buff[k] = fgetc(in)) == '\n')
 		k++;
 	if(k != 0) {
@@ -75,23 +74,35 @@ void build_paragraph(FILE * in, FILE * out, listnode ** hashtab_md) {
 	}
 	else
 		fseek(in, -1 ,SEEK_CUR);
+	memset(buff, 0, k+1);
+	k = 0;
 	while(1) {	
 		buff[k] = fgetc(in);
 		if(buff[k] == EOF)
 			break;	
 		if(buff[k] == '\n') {
-			buff[k] = fgetc(in);
-			if(buff[k] == '\n') {
+			buff[k+1] = fgetc(in);
+			if(buff[k+1] == '\n') {
 				fseek(in, -1 ,SEEK_CUR);
 				break;
 			}
 			else {
-			k++;
-			buff[k] = fgetc(in);
+				fseek(in, -1 ,SEEK_CUR);
 			}
 		}
-	k++;	
-	}
+		/*if(buff[k] == ' ') {
+			buff[k+1] = fgetc(in);
+			if(buff[k+1] == ' ') {
+				fseek(in, -1 ,SEEK_CUR);
+				buff[k] = '<'; buff[k+1] = 'b'; buff[k+2] = 'r'; buff[k+3] = '/'; buff[k+4] = '>';
+				k+=5;
+				continue;
+			}
+			else {
+				fseek(in, -1 ,SEEK_CUR);
+			}*/
+			k++;	
+		}
 
 	
 	print_str(buff, "\\n", out, k, hashtab_md, 0); 
@@ -100,43 +111,36 @@ void build_paragraph(FILE * in, FILE * out, listnode ** hashtab_md) {
 
 }
 
-/*void build_paragraph(FILE * in, FILE * out, listnode ** hashtab_md) {
+/*void build_ulist(char *word , FILE * in, FILE * out, listnode ** hashtab_md) { 
+	
+	listnode * node = hashtab_lookup(hashtab_md, word);
+	print_open_tag(node->tag.open, out, strlen(node->tag.open));
+	char * open_li = '<li>';
+	char * close_li = '</li>';
 	int k = 0;
 	char * buff;
 	buff = malloc(sizeof(char) * 256);
-	//int count = 1;
-	memset(buff, 0, 256);
-	while((buff[k] = fgetc(in)) == '\n') {
-		fprintf(out, "%c", buff[k]);
-		k++;
-	}
-
-
+	memset(buff, 0, 1000);
 	fseek(in, -1 ,SEEK_CUR);
-	//fprintf(out, "%c", buff[k-1]);
-	memset(buff, 0, k);
-	k = 0;
-	buff[k] = fgetc(in);
-	k++;
-	while(1) {	
-		buff[k] = fgetc(in);
-		if(buff[k] == EOF)
-			break;	
-		if(buff[k] == '\n') {
-			fseek(in, -1 ,SEEK_CUR);
-			break;
-		}
-		else {
-			k++;
+	while(1) {
 			buff[k] = fgetc(in);
-		}
-	k++;	
+			if(buff[k] == '+') {
+				fprintf(out, "%s", open_li);
+				while (buff[k] != '\n') {
+				   buff[k] = fgetc(in);
+				   fprintf(out, "%s", buff[k]);
+				   k++;
+				 } 
+				fprintf(out, "%s", close_li);
+			}
+		}	
 
-	}
-	print_str(buff, "\\n", out, k, hashtab_md, 0); 
 
-	free(buff);	
-}*/
+
+	print_close_tag(node->tag.close, out, strlen(node->tag.close));
+}
+*/
+
 
 
 void check_in(char * word, FILE * in, FILE * out, listnode ** hashtab_md){
@@ -152,6 +156,11 @@ void check_in(char * word, FILE * in, FILE * out, listnode ** hashtab_md){
 			build_paragraph(in, out, hashtab_md);
 			return;
 		}
+		if(!strcmp(word, "#")){
+			build_ulist(word, in, out, hashtab_md);
+			return;
+		}
+
 	}
 }
 
@@ -188,9 +197,10 @@ int encode_file(const char *in_file_name, const char *out_file_name, listnode **
 			if(word[i][j] == '#') {
 				check_in(&word[i][j], in, out, hashtab_md);
 			}
+			if(word[i][j] == '+') {
+				check_in(&word[i][j], in, out, hashtab_md);
+			}
 			check_in("\\n", in, out, hashtab_md);
-				
-			//check_in(&word[i][j], in, out, hashtab_md);
 		}
 	}
 	
